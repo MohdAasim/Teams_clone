@@ -6,7 +6,6 @@ import {
   People24Regular, 
   Calendar24Regular, 
   Alert24Regular,
-  Dismiss24Regular
 } from '@fluentui/react-icons';
 
 interface SidebarProps {
@@ -46,25 +45,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <aside 
         className={`
           ${isCollapsed ? 'w-[48px]' : 'w-[70px]'} 
-          ${isMobile ? 'fixed left-0 top-0 bottom-0 z-20' : 'relative'} 
+          ${isMobile ? 'absolute left-0 top-0 bottom-0 z-20' : 'relative'} 
           ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
-          bg-[#202020] flex flex-col items-center transition-transform duration-300 h-full
+          bg-[#ebebeb] flex flex-col items-center transition-transform duration-300 h-full
         `}
       >
-        {/* Mobile close button */}
-        {isMobile && isOpen && (
-          <button 
-            className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-[#3a3a3a]"
-            onClick={onClose}
-          >
-            <Dismiss24Regular />
-          </button>
-        )}
+       
         
-        {/* Remove the Teams logo from here as it's now in the header */}
-        <div className="mt-4 h-4"></div>
-        
-        <nav className="flex-grow flex flex-col items-center mt-6 w-full">
+        <nav className="flex-grow flex flex-col items-center w-full">
           <NavItem 
             to="/chat" 
             icon={<Chat24Regular />} 
@@ -121,15 +109,13 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, isCollapsed, isActiv
       to={to} 
       className={`
         flex flex-col items-center justify-center py-3
-        w-full hover:bg-[#3a3a3a] transition-colors
-        ${isActive ? 'bg-[#3a3a3a]' : ''}
+        w-full hover:bg-[#ffffffAA] transition-colors  ${isActive?"text-[#6264A7]":"text-[#949494] hover:text-[#6264A7]"}
       `}
     >
-      <div className="text-center" style={{ color: isActive ? '#6264A7' : '#949494' }}>{icon}</div>
+      <div className={`text-center`}>{icon}</div>
       {!isCollapsed && (
         <span 
-          className="text-[10px] mt-1"
-          style={{ color: isActive ? '#6264A7' : '#949494' }}
+          className={`text-[10px] mt-1`}
         >
           {label}
         </span>
