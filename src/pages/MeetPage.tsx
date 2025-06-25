@@ -126,24 +126,25 @@ const MeetPage = () => {
             </button>
           </div>
 
-          <div
-            className="border border-[#E1E1E1] rounded-lg overflow-hidden flex flex-col md:flex-row"
-          >
+          <div className="border border-[#E1E1E1] rounded-lg overflow-hidden flex flex-col md:flex-row">
             <div className="p-6 flex-1">
               <p className="text-gray-700">
                 You don't have anything scheduled.
               </p>
             </div>
 
-            <div
-              className={`${isMobile ? "h-48" : ""} md:w-1/2 bg-[#EAE1F9] relative overflow-hidden ${isTablet ? "hidden" : ""}`}
+            {!isMobile && 
+            (<div
+              className={`md:w-1/2 bg-[#EAE1F9] relative overflow-hidden ${
+                isTablet ? "hidden" : ""
+              }`}
             >
               <img
-                src="https://statics.teams.cdn.live.net/hashed/empty-state-schedule-meeting-49a6a4.svg"
+                src="https://statics.teams.cdn.live.net/evergreen-assets/communities/banners/v2/assets/DefaultBanner2.png"
                 alt="No scheduled meetings"
-                className="w-full h-full object-cover"
+                className="w-full h-[190px] object-cover"
               />
-            </div>
+            </div>)}
           </div>
         </div>
       </div>
