@@ -3,9 +3,15 @@ import { useState, useEffect } from 'react';
 
 interface WelcomeCardProps {
   userName: string;
+  onNewChat?: () => void;
+  onMeetNow?: () => void;
 }
 
-const WelcomeCard: React.FC<WelcomeCardProps> = ({ userName }) => {
+const WelcomeCard: React.FC<WelcomeCardProps> = ({ 
+  userName,
+  onNewChat,
+  onMeetNow
+}) => {
   const [screenSize, setScreenSize] = useState({
     isMobile: false,
     isTablet: false,
@@ -52,6 +58,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ userName }) => {
           </p>
           <DefaultButton
             text="New chat"
+            onClick={onNewChat}
             styles={{
               root: {
                 borderRadius: "4px",
@@ -79,6 +86,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ userName }) => {
           </p>
           <DefaultButton
             text="Meet now"
+            onClick={onMeetNow}
             styles={{
               root: {
                 borderRadius: "4px",
