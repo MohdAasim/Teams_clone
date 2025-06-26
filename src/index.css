@@ -14,3 +14,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@theme{
+  --color-primary: #5b5fc7;
+}
