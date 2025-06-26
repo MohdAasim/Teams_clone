@@ -13,6 +13,7 @@
     "@fluentui/react": "^8.123.0",
     "@fluentui/react-icons": "^2.0.304",
     "@tailwindcss/vite": "^4.1.10",
+    "date-fns": "^4.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
