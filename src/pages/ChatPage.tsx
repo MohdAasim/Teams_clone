@@ -82,20 +82,21 @@ const ChatPage = () => {
 
   const handleDismiss = () => {
     disableNotifications();
-    setShowNotification(false);
+    setShowNotification(false); //hello
   };
 
   const handleCreateNewChat = () => {
     // Add a new chat to the list
     const newChatId = Date.now();
+    const newChat = {
+      id: newChatId,
+      name: "New chat",
+      image: null,
+      recent: true,
+      selected: true,
+    };
     setChats([
-      {
-        id: newChatId,
-        name: "New chat",
-        image: null,
-        recent: true,
-        selected: true,
-      },
+     newChat,
       ...chats
     ]);
     setSelectedChatId(newChatId);
