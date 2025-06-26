@@ -88,15 +88,14 @@ const ChatPage = () => {
   const handleCreateNewChat = () => {
     // Add a new chat to the list
     const newChatId = Date.now();
-    const newChat = {
-      id: newChatId,
-      name: "New chat",
-      image: null,
-      recent: true,
-      selected: true,
-    };
     setChats([
-     newChat,
+      {
+        id: newChatId,
+        name: "New chat",
+        image: null,
+        recent: true,
+        selected: true,
+      },
       ...chats
     ]);
     setSelectedChatId(newChatId);
