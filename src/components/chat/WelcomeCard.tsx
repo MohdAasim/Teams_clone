@@ -10,7 +10,7 @@ interface WelcomeCardProps {
 const WelcomeCard: React.FC<WelcomeCardProps> = ({ 
   userName,
   onNewChat,
-  onMeetNow
+  onMeetNow 
 }) => {
   const [screenSize, setScreenSize] = useState({
     isMobile: false,
