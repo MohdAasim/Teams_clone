@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { SearchBox } from '@fluentui/react/lib/SearchBox';
 import { Icon } from '@fluentui/react';
 import { 
-  PersonCircle24Regular, 
   MoreHorizontal24Regular,
   CheckmarkCircle12Filled,
   Search16Regular,
@@ -10,6 +9,8 @@ import {
   ArrowLeft24Regular
 } from '@fluentui/react-icons';
 import SettingsDropdown from './SettingsDropdown';
+import UserProfileDropdown from './UserProfileDropdown';
+import { userEmail, userName } from '../../utils/constant';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -22,8 +23,13 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const [showSettingsTooltip, setShowSettingsTooltip] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showProfileTooltip, setShowProfileTooltip] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
+  
+
 
   // Enhanced responsiveness check
   useEffect(() => {
@@ -38,12 +44,17 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (settingsButtonRef.current && 
           !settingsButtonRef.current.contains(event.target as Node)) {
         setShowSettingsDropdown(false);
+      }
+      
+      if (profileButtonRef.current && 
+          !profileButtonRef.current.contains(event.target as Node)) {
+        setShowProfileDropdown(false);
       }
     };
 
@@ -58,7 +69,23 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
 
   const toggleSettingsDropdown = () => {
     setShowSettingsDropdown(prev => !prev);
-    setShowSettingsTooltip(false); // Hide tooltip when dropdown is opened
+    setShowSettingsTooltip(false);
+    setShowProfileDropdown(false);
+  };
+  
+  const toggleProfileDropdown = () => {
+    setShowProfileDropdown(prev => !prev);
+    setShowProfileTooltip(false);
+    setShowSettingsDropdown(false);
+  };
+
+  // Function to get user's initials
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase();
   };
 
   return (
@@ -84,7 +111,6 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       )}
       
       {/* Center search bar - responsive */}
-      
       {(!isMobile && !isSmallScreen) ? (
         <div className="flex-grow flex justify-center">
           <div className="flex-grow flex justify-center">
@@ -190,15 +216,47 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         </div>
         
         {/* User profile button */}
-        <button 
-          className={`p-0.5 hover:bg-[#f5f5f5] rounded-full transition-colors relative`}
-          onMouseOver={() => setActiveIconIndex(1)}
-          onMouseOut={() => setActiveIconIndex(null)}
-          aria-label="User profile"
-        >
-          <PersonCircle24Regular style={iconStyle(1)} />
-          <CheckmarkCircle12Filled style={{ color: '#6BB700' }} className='border rounded-full bg-[#ebebeb] p-0 border-[#ebebeb] absolute bottom-0 right-0' />
-        </button>
+        <div className="relative">
+          <button 
+            ref={profileButtonRef}
+            className={`p-0.5 hover:bg-[#f5f5f5] rounded-full transition-colors relative`}
+            onMouseEnter={() => {
+              setActiveIconIndex(1);
+              setShowProfileTooltip(true);
+            }}
+            onMouseLeave={() => {
+              setActiveIconIndex(null);
+              setShowProfileTooltip(false);
+            }}
+            onClick={toggleProfileDropdown}
+            aria-label="User profile"
+          >
+            <div className="w-8 h-8 bg-[#E9A52F] rounded-full flex items-center justify-center text-white font-medium text-sm relative">
+              {getInitials(userName)}
+              <CheckmarkCircle12Filled 
+                style={{ color: '#6BB700' }} 
+                className='border rounded-full bg-[#ebebeb] p-0 border-[#ebebeb] absolute bottom-0 right-0' 
+              />
+            </div>
+          </button>
+          
+          {/* Tooltip */}
+          {showProfileTooltip && !showProfileDropdown && (
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
+              Your profile
+            </div>
+          )}
+          
+          {/* Profile dropdown */}
+          {showProfileDropdown && (
+            <UserProfileDropdown 
+              isOpen={showProfileDropdown}
+              onClose={() => setShowProfileDropdown(false)}
+              userName={userName}
+              userEmail={userEmail}
+            />
+          )}
+        </div>
       </div>
     </header>
   );

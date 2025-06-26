@@ -30,6 +30,7 @@ import {
 } from '../utils/chatLocalStorage';
 import MeetingDialog from '../components/videoCall/MeetingDialog';
 import VideoCallModal from '../components/videoCall/VideoCallModal';
+import { userName } from '../utils/constant';
 interface newChatType {
   id: number;
   name: string;
@@ -59,8 +60,7 @@ const ChatPage = () => {
   // Video call states
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
-  const [userName,] = useState("Mohd Aasim");
-
+  
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
