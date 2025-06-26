@@ -30,14 +30,20 @@ import {
 } from '../utils/chatLocalStorage';
 import MeetingDialog from '../components/videoCall/MeetingDialog';
 import VideoCallModal from '../components/videoCall/VideoCallModal';
-
+interface newChatType {
+  id: number;
+  name: string;
+  image: null;
+  recent: boolean;
+  selected: boolean;
+}
 const ChatPage = () => {
   const [showNotification, setShowNotification] = useState(shouldShowNotification);
   const [activeIconIndex, setActiveIconIndex] = useState<number | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [chats, setChats] = useState<any[]>([]);
+  const [chats, setChats] = useState<newChatType[]>([]);
   
   // New chat states
   const [showNewChat, setShowNewChat] = useState(false);
@@ -53,7 +59,7 @@ const ChatPage = () => {
   // Video call states
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
-  const [userName, setUserName] = useState("Mohd Aasim");
+  const [userName,] = useState("Mohd Aasim");
 
   useEffect(() => {
     const handleResize = () => {
@@ -83,7 +89,13 @@ const ChatPage = () => {
     // Add a new chat to the list
     const newChatId = Date.now();
     setChats([
-      { id: newChatId, name: 'New chat', image: null, recent: true, selected: true },
+      {
+        id: newChatId,
+        name: "New chat",
+        image: null,
+        recent: true,
+        selected: true,
+      },
       ...chats
     ]);
     setSelectedChatId(newChatId);
