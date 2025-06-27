@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { 
   DefaultButton, 
   IconButton,
@@ -30,13 +30,22 @@ import {
 } from '../utils/chatLocalStorage';
 import MeetingDialog from '../components/videoCall/MeetingDialog';
 import VideoCallModal from '../components/videoCall/VideoCallModal';
-import { userName } from '../utils/constant';
+import { dummyUsers, userName } from '../utils/constant';
+import ChatMessages from '../components/chat/ChatMessages';
 interface newChatType {
   id: number;
   name: string;
+  email: string;
   image: null;
   recent: boolean;
   selected: boolean;
+  messages:messageType[]
+}
+export interface messageType{
+  message: string;
+  sender: string;
+  timestamp: string;
+  reactions:string[];
 }
 const ChatPage = () => {
   const [showNotification, setShowNotification] = useState(shouldShowNotification);
@@ -62,6 +71,7 @@ const ChatPage = () => {
   const [showVideoCall, setShowVideoCall] = useState(false);
   const   [showWelcomeModal,
   setShowWelcomeModal] = useState(false);
+  const [users, setUsers] = useState<typeof dummyUsers>([]);
 
   
   useEffect(() => {
@@ -88,19 +98,31 @@ const ChatPage = () => {
     setShowNotification(false); //hello
   };
 
-  const handleCreateNewChat = () => {
+  // Function to create a new chat
+  //----------------------------------------------------
+  const handleCreateNewChat = (user:{name:string;email:string}|undefined) => {
     // Add a new chat to the list
+    const existingChat = chats.find(chat => chat.email === user?.email);
+    console.log(existingChat,"=====");
+    if (existingChat) {
+      // If chat with this email already exists, do not create a new one
+      return;
+    }
     const newChatId = Date.now();
     const newChat = {
       id: newChatId,
-      name: "New chat",
+      name: user?.name||"New chat",
+      email: user?.email||"",
       image: null,
       recent: true,
       selected: true,
+      messages: []
     };
+    const newChats = chats.filter(chat=>chat.name!=="New chat")
+
     setChats([
      newChat,
-      ...chats
+      ...newChats
     ]);
     setSelectedChatId(newChatId);
     setShowNewChat(true);
@@ -117,14 +139,16 @@ const ChatPage = () => {
       setShowNewChat(false);
     }
   };
-
   const handleChatItemClick = (id: number) => {
-    setChats(chats.map(chat => ({
+    
+    setChats(oldchats=>oldchats.map(chat => ({
       ...chat,
       selected: chat.id === id
     })));
+    setChats(oldchats=>oldchats.filter(chat => chat.name !== 'New chat'||chat.selected));
+    
     setSelectedChatId(id);
-    setShowNewChat(true);
+    setShowNewChat(false);
     
     if (isMobile) {
       setShowSidebar(false);
@@ -192,7 +216,54 @@ const ChatPage = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  function onUserSearchChange(e: FormEvent<HTMLInputElement | HTMLTextAreaElement>){
+    const newValue = e.currentTarget.value;
+    setRecipient(newValue);
+    console.log("Search input changed:", newValue);
+    
+    // Here you can implement search logic to filter users based on input
+      const filteredUser =newValue.trim().length<3?[]: dummyUsers.filter(user=>user.email.toLowerCase().includes(newValue.toLowerCase()));
+  console.log(filteredUser);
+  setUsers(filteredUser)
 
+  }
+
+  // Function to handle user selection from search results
+  //----------------------------------------------------
+  const onUserSelect = (user:{name:string;email:string}) => {
+    setRecipient(user.name);
+    console.log("User selected:", user);
+    
+    setUsers([]);
+    handleCreateNewChat(user);
+
+  };
+
+  const addMessage = () => {
+    const newMessage: messageType = {
+      message: message,
+      sender: userName,
+      timestamp: new Date().toISOString(),
+      reactions: []
+    };
+    console.log("-----------",selectedChatId);
+    setChats(oldChats =>
+      oldChats.map(chat => {
+        if (chat.id === selectedChatId) {
+          return {
+            ...chat,
+            messages: [...chat.messages, newMessage]
+          };
+        }
+        return chat;
+      })
+    );
+    
+    
+    setShowNewChat(false);
+    setMessage('');
+    setRecipient('');
+  }
 
   // Header icon styles to match Teams UI
   const iconButtonStyles = {
@@ -333,7 +404,7 @@ const ChatPage = () => {
                       styles={iconButtonStyles}
                       onMouseOver={() => setActiveIconIndex(2)}
                       onMouseOut={() => setActiveIconIndex(null)}
-                      onClick={handleCreateNewChat}
+                      onClick={()=>handleCreateNewChat({name:'',email:''})}
                     >
                       <ComposeFilled
                         style={{
@@ -459,11 +530,11 @@ const ChatPage = () => {
 
             {/* Main content area */}
             <div className="flex-1 flex flex-col overflow-hidden rounded-xl m-2 shadow-2xs">
-              {!showNewChat && (!isMobile || (isMobile && !showSidebar)) && (
+              {!showNewChat&&!selectedChatId && (!isMobile || (isMobile && !showSidebar)) && (
                 <div className="flex-1 bg-white">
                   <WelcomeCard
                     userName={userName}
-                    onNewChat={handleCreateNewChat}
+                    onNewChat={()=>handleCreateNewChat({name:'',email:''})}
                     handleStartMeeting={handleStartMeeting}
                     showWelcomeModal={showWelcomeModal}
                     showMeetingDialog2={showMeetingDialog2}
@@ -473,6 +544,17 @@ const ChatPage = () => {
                 </div>
               )}
 
+              {!showNewChat&&selectedChatId&&(chats.find(chat => chat.id === selectedChatId) as newChatType)?.messages.length > 0 && 
+              <ChatMessages 
+    messages={chats.find(chat => chat.id === selectedChatId)?.messages || []}
+    currentUser={userName}
+    chatPartner={{
+      name: chats.find(chat => chat.id === selectedChatId)?.name || "",
+      email: chats.find(chat => chat.id === selectedChatId)?.email || ""
+    }}
+  />}
+
+              {/* New chat view */}
               {showNewChat && (!isMobile || (isMobile && !showSidebar)) && (
                 <div className="flex-1 flex flex-col bg-white overflow-hidden">
                   {/* New Chat Header */}
@@ -513,20 +595,44 @@ const ChatPage = () => {
                       )}
 
                       <div className="flex items-center">
-                        <span className="mr-2 font-medium">To:</span>
-                        <TextField
-                          placeholder="Enter name, email or phone number"
-                          value={recipient}
-                          onChange={(_, newValue) =>
-                            setRecipient(newValue || "")
-                          }
-                          borderless
-                          className="flex-1"
-                          styles={{
-                            root: { margin: "0", width: "100%" },
-                            fieldGroup: { background: "transparent" },
-                          }}
-                        />
+                        <span className="mr-2 font-medium relative">To:
+                        </span>
+                        
+                          <div className="flex-1 relative">
+                            <TextField
+                              placeholder="Enter name, email or phone number"
+                              value={recipient}
+                              onChange={onUserSearchChange}
+                              onFocus={onUserSearchChange}
+                              onBlur={() => setTimeout(() => setUsers([]), 150)}
+                              borderless
+                              className="flex-1"
+                              styles={{
+                                root: { margin: "0", width: "100%" },
+                                fieldGroup: { background: "transparent" },
+                              }}
+                            />
+                            
+                            {users.length > 0 && (
+                              <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-md z-10 mt-1 border border-gray-200">
+                                {users.map((user, index) => (
+                                  <div 
+                                    key={index}
+                                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                    onClick={()=>onUserSelect(user)}
+                                  >
+                                    <div className="w-8 h-8 rounded-full bg-[#E9A52F] flex items-center justify-center text-white font-medium text-sm mr-3">
+                                      {user.name.split(' ').map(part => part.charAt(0)).join('').toUpperCase().substring(0, 2)}
+                                    </div>
+                                    <div>
+                                      <div className="font-medium">{user.name}</div>
+                                      <div className="text-xs text-gray-500">{user.email}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         <IconButton
                           ariaLabel={
                             showGroupNameField
@@ -542,6 +648,7 @@ const ChatPage = () => {
                           )}
                         </IconButton>
                       </div>
+
                     </div>
                   </div>
 
@@ -641,7 +748,8 @@ const ChatPage = () => {
 
                         <IconButton
                           ariaLabel="Send"
-                          disabled={!message.trim()}
+                          disabled={!message.trim() || !recipient}
+                          onClick={() => addMessage()}
                           styles={{
                             root: {
                               color: message.trim() ? "#5b5fc7" : "#c8c8c8",
