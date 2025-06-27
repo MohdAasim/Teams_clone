@@ -6,11 +6,16 @@ import {
   CheckmarkCircle12Filled,
   Search16Regular,
   Navigation24Regular,
-  ArrowLeft24Regular
+  ArrowLeft24Regular,
+  CircleFilled,
+  DismissCircleFilled,
+  ClockRegular,
+  PresenceOfflineRegular
 } from '@fluentui/react-icons';
 import SettingsDropdown from './SettingsDropdown';
 import UserProfileDropdown from './UserProfileDropdown';
 import { userEmail, userName } from '../../utils/constant';
+import { getUserStatus, getUserStatusColor } from '../../utils/chatLocalStorage';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -25,6 +30,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const [showSettingsTooltip, setShowSettingsTooltip] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showProfileTooltip, setShowProfileTooltip] = useState(false);
+  const [userStatus, setUserStatus] = useState<string>(getUserStatus());
+  const [userStatusColor, setUserStatusColor] = useState<string>(getUserStatusColor());
   const searchInputRef = useRef<HTMLInputElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
@@ -47,13 +54,22 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (settingsButtonRef.current && 
-          !settingsButtonRef.current.contains(event.target as Node)) {
-        setShowSettingsDropdown(false);
+      // Check if the click target is a status item or status message trigger
+      const target = event.target as HTMLElement;
+      const isStatusItem = target.closest('[data-status-trigger]');
+      if (isStatusItem) {
+        // Don't close the dropdown for these clicks
+        return;
       }
       
-      if (profileButtonRef.current && 
-          !profileButtonRef.current.contains(event.target as Node)) {
+     // otherwise close the dropdown
+      const dropdown = document.querySelector('.user-profile-dropdown');
+      if (
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(event.target as Node) &&
+        dropdown &&
+        !dropdown.contains(event.target as Node)
+      ) {
         setShowProfileDropdown(false);
       }
     };
@@ -61,6 +77,55 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Monitor localStorage for status changes
+  useEffect(() => {
+    const checkUserStatus = () => {
+      const status = getUserStatus();
+      const color = getUserStatusColor();
+      setUserStatus(status);
+      setUserStatusColor(color);
+    };
+    
+    // Check on mount
+    checkUserStatus();
+    
+    // Set up storage event listener
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'teams_user_status' || e.key === 'teams_user_status_color') {
+        checkUserStatus();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Fallback polling for same-tab updates
+    const interval = setInterval(checkUserStatus, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Get the appropriate status icon
+  const getStatusIcon = () => {
+    switch (userStatus) {
+      case 'Available':
+        return <CheckmarkCircle12Filled style={{ color: userStatusColor }} />;
+      case 'Busy':
+        return <CircleFilled style={{ color: userStatusColor }} />;
+      case 'Do not disturb':
+        return <DismissCircleFilled style={{ color: userStatusColor }} />;
+      case 'Be right back':
+      case 'Appear away':
+        return <ClockRegular style={{ color: userStatusColor }} />;
+      case 'Appear offline':
+        return <PresenceOfflineRegular style={{ color: userStatusColor }} />;
+      default:
+        return <CheckmarkCircle12Filled style={{ color: '#6BB700' }} />;
+    }
+  };
 
   const iconStyle = (index: number) => ({
     color: activeIconIndex === index ? '#5b5fc7' : '#616161',
@@ -71,12 +136,6 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
     setShowSettingsDropdown(prev => !prev);
     setShowSettingsTooltip(false);
     setShowProfileDropdown(false);
-  };
-  
-  const toggleProfileDropdown = () => {
-    setShowProfileDropdown(prev => !prev);
-    setShowProfileTooltip(false);
-    setShowSettingsDropdown(false);
   };
 
   // Function to get user's initials
@@ -228,15 +287,15 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
               setActiveIconIndex(null);
               setShowProfileTooltip(false);
             }}
-            onClick={toggleProfileDropdown}
+            onClick={() => setShowProfileDropdown(v => !v)}
             aria-label="User profile"
           >
             <div className="w-8 h-8 bg-[#E9A52F] rounded-full flex items-center justify-center text-white font-medium text-sm relative">
               {getInitials(userName)}
-              <CheckmarkCircle12Filled 
-                style={{ color: '#6BB700' }} 
-                className='border rounded-full bg-[#ebebeb] p-0 border-[#ebebeb] absolute bottom-0 right-0' 
-              />
+              {/* Update with dynamic status icon */}
+              <div className="rounded-full p-0 absolute bottom-0 right-0">
+                {getStatusIcon()}
+              </div>
             </div>
           </button>
           

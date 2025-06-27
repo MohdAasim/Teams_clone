@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ArrowRight20Regular,
   EditRegular,
+  CheckmarkCircleFilled
 } from '@fluentui/react-icons';
 import StatusDropdown from './StatusDropdown';
 import StatusMessageDialog from './StatusMessageDialog';
+import { getUserStatus, getUserStatusColor, setUserStatus } from '../../utils/chatLocalStorage';
 
 interface UserProfileDropdownProps {
   isOpen: boolean;
@@ -16,11 +18,12 @@ interface UserProfileDropdownProps {
 const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ 
   isOpen, 
   onClose, 
-  userName = "Mohd Aasim", 
-  userEmail = "mfsi.aasim.m@gmail.com" 
+  userName,
+  userEmail 
 }) => {
-  const [currentStatus, setCurrentStatus] = useState<string>("Available");
-  const [statusColor, setStatusColor] = useState<string>("#6BB700");
+  // Initialize from localStorage
+  const [currentStatus, setCurrentStatus] = useState<string>(getUserStatus());
+  const [statusColor, setStatusColor] = useState<string>(getUserStatusColor());
   const [showStatusDropdown, setShowStatusDropdown] = useState<boolean>(false);
   const [showStatusMessageDialog, setShowStatusMessageDialog] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
@@ -34,60 +37,56 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
       .join('')
       .toUpperCase();
   };
-
-  // Handle clicking outside of dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
+ 
   // Handle status change
   const handleStatusChange = (status: string) => {
-    setCurrentStatus(status);
+    let newColor = '#6BB700';
     
     // Update status color
     switch (status) {
       case 'Available':
-        setStatusColor('#6BB700');
+        newColor = '#6BB700';
         break;
       case 'Busy':
       case 'Do not disturb':
-        setStatusColor('#D92C2C');
+        newColor = '#D92C2C';
         break;
       case 'Be right back':
       case 'Appear away':
-        setStatusColor('#F8C73E');
+        newColor = '#F8C73E';
         break;
       case 'Appear offline':
-        setStatusColor('#8A8886');
+        newColor = '#8A8886';
         break;
       default:
-        setStatusColor('#6BB700');
+        newColor = '#6BB700';
     }
     
+    // Update state
+    setCurrentStatus(status);
+    setStatusColor(newColor);
+    
+    // Save to localStorage
+    setUserStatus(status, newColor);
+    
+    // Close the dropdown
     setShowStatusDropdown(false);
   };
 
   // Reset status to Available
   const resetStatus = () => {
-    setCurrentStatus('Available');
-    setStatusColor('#6BB700');
+    const defaultStatus = 'Available';
+    const defaultColor = '#6BB700';
+    
+    setCurrentStatus(defaultStatus);
+    setStatusColor(defaultColor);
+    setUserStatus(defaultStatus, defaultColor);
     setShowStatusDropdown(false);
   };
 
   // Open status message dialog
-  const openStatusMessageDialog = () => {
+  const openStatusMessageDialog = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop event from bubbling
     setShowStatusMessageDialog(true);
   };
 
@@ -97,6 +96,12 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
     setShowStatusMessageDialog(false);
   };
 
+  const setStatusDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop event from bubbling
+    console.log('Toggling status dropdown');
+    setShowStatusDropdown(!showStatusDropdown);
+  };
+
   const teamsFont = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
   };
@@ -104,12 +109,9 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50" onClick={(e) => {
-      if (e.target === e.currentTarget) onClose();
-    }}>
-      <div 
+      <div
         ref={dropdownRef}
-        className="absolute right-4 top-12 bg-white rounded-md shadow-lg border border-gray-200 w-72 py-2 overflow-visible"
+        className="user-profile-dropdown absolute right-4 bg-white rounded-md shadow-lg border border-gray-200 w-80 py-2 overflow-visible z-50"
         style={teamsFont}
       >
         {/* Header with Personal and Sign out */}
@@ -148,16 +150,20 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
         <div className="mt-2">
           {/* Current status - clickable to show status dropdown */}
           <div 
-            className="px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-100"
-            onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+            className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-gray-100"
+            onClick={(e) => setStatusDropdown(e)}
+            data-status-trigger="true"
           >
             <div className="flex items-center">
-              <div className="w-5 h-5 mr-2 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusColor }}></div>
+              <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                {/* Use the same icon as in the status dropdown */}
+                <CheckmarkCircleFilled style={{ color: statusColor }} />
               </div>
-              <span>{currentStatus}</span>
+              <span className="text-sm">{currentStatus}</span>
             </div>
-            <ArrowRight20Regular fontSize={16} className="text-gray-500" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
+              <path d="M6.5 12.5L11 8L6.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
           
           {/* Status dropdown when expanded */}
@@ -171,14 +177,19 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
           
           {/* Set status message option */}
           <div 
-            className="px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-100"
-            onClick={openStatusMessageDialog}
+            className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-gray-100"
+            onClick={(e) => openStatusMessageDialog(e)}
+            data-status-trigger="true"
           >
             <div className="flex items-center">
-              <EditRegular className="w-5 h-5 mr-2 text-gray-600" />
-              <span>Set status message</span>
+              <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                <EditRegular className="text-gray-600" style={{ fontSize: 16 }} />
+              </div>
+              <span className="text-sm">Set status message</span>
             </div>
-            <ArrowRight20Regular fontSize={16} className="text-gray-500" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
+              <path d="M6.5 12.5L11 8L6.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
         </div>
 
@@ -193,7 +204,6 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
           />
         )}
       </div>
-    </div>
   );
 };
 
