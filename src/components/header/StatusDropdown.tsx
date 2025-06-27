@@ -7,6 +7,7 @@ import {
   PresenceOfflineRegular,
   HistoryRegular,
 } from '@fluentui/react-icons';
+import { STATUS_OPTIONS } from '../../utils/constant';
 
 interface StatusDropdownProps {
   onSelectStatus: (status: string) => void;
@@ -19,68 +20,59 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
   currentStatus,
   onResetStatus 
 }) => {
-  const statusOptions = [
-    { 
-      name: 'Available', 
-      color: '#6BB700',
-      icon: <CheckmarkCircleFilled style={{ color: '#6BB700' }} />
-    },
-    { 
-      name: 'Busy', 
-      color: '#D92C2C',
-      icon: <CircleFilled style={{ color: '#D92C2C' }} />
-    },
-    { 
-      name: 'Do not disturb', 
-      color: '#D92C2C',
-      icon: <DismissCircleFilled style={{ color: '#D92C2C' }} />
-    },
-    { 
-      name: 'Be right back', 
-      color: '#F8C73E',
-      icon: <ClockRegular style={{ color: '#F8C73E' }} />
-    },
-    { 
-      name: 'Appear away', 
-      color: '#F8C73E',
-      icon: <ClockRegular style={{ color: '#F8C73E' }} />
-    },
-    { 
-      name: 'Appear offline', 
-      color: '#8A8886',
-      icon: <PresenceOfflineRegular style={{ color: '#8A8886' }} />
-    },
-  ];
+  // Generate icon components from the status options
+  const getStatusIcon = (iconName: string, color: string) => {
+    switch(iconName) {
+      case 'checkmarkCircle':
+        return <CheckmarkCircleFilled style={{ color }} />;
+      case 'circle':
+        return <CircleFilled style={{ color }} />;
+      case 'dismissCircle':
+        return <DismissCircleFilled style={{ color }} />;
+      case 'clock':
+        return <ClockRegular style={{ color }} />;
+      case 'presenceOffline':
+        return <PresenceOfflineRegular style={{ color }} />;
+      default:
+        return <CheckmarkCircleFilled style={{ color }} />;
+    }
+  };
 
   return (
-    <div className="absolute left-0 right-0 bg-white shadow-md z-10 border border-gray-200">
-      {statusOptions.map((status) => (
+    <div className="absolute left-1/2 transform -translate-x-1/2 bg-white shadow-md z-10 border border-gray-200 rounded-md w-60">
+      {STATUS_OPTIONS.map((status) => (
         <div 
           key={status.name} 
-          className={`px-4 py-2 flex items-center hover:bg-gray-100 cursor-pointer ${
+          className={`px-4 py-3 flex items-center hover:bg-gray-100 cursor-pointer ${
             currentStatus === status.name ? 'bg-gray-50' : ''
           }`}
-          onClick={() => onSelectStatus(status.name)}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent bubbling
+            onSelectStatus(status.name);
+          }}
         >
-          <div className="w-5 h-5 mr-3 flex items-center justify-center">
-            {status.icon}
+          <div className="w-6 h-6 mr-3 flex items-center justify-center">
+            {getStatusIcon(status.iconName, status.color)}
           </div>
-          <span>{status.name}</span>
+          <span className="text-sm">{status.name}</span>
         </div>
       ))}
       
       {/* Separator */}
-      <div className="h-px bg-gray-200 mx-4 my-2"></div>
+      <div className="h-px bg-gray-200 my-1"></div>
       
       {/* Reset status option */}
       <div 
-        className="px-4 py-2 flex items-center hover:bg-gray-100 cursor-pointer"
-        onClick={onResetStatus}
+        className="px-4 py-3 flex items-center hover:bg-gray-100 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent bubbling
+          onResetStatus();
+        }}
       >
-        <div className="w-5 h-5 mr-3 flex items-center justify-center">
+        <div className="w-6 h-6 mr-3 flex items-center justify-center">
           <HistoryRegular style={{ color: '#616161' }} />
         </div>
-        <span>Reset status</span>
+        <span className="text-sm">Reset status</span>
       </div>
     </div>
   );
