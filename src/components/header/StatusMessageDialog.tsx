@@ -37,13 +37,12 @@ const StatusMessageDialog: React.FC<StatusMessageDialogProps> = ({
     { key: 'thisweek', text: 'This week' }
   ];
   
-  const handleMessageChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+  const handleMessageChange = (_event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
     if (newValue !== undefined && newValue.length <= maxLength) {
       setStatusMessage(newValue);
     }
   };
-
-  const handleClearAfterChange = (option?: IDropdownOption) => {
+const handleClearAfterChange = (option?: IDropdownOption) => {
     if (option) {
       setClearAfter(option.text);
     }
