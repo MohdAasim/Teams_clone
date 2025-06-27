@@ -1,16 +1,25 @@
 import { DefaultButton } from '@fluentui/react';
 import { useState, useEffect } from 'react';
+import MeetingDialog from '../videoCall/MeetingDialog';
 
 interface WelcomeCardProps {
   userName: string;
   onNewChat?: () => void;
-  onMeetNow?: () => void;
+  handleStartMeeting: () => void;
+  showWelcomeModal:boolean;
+  setShowWelcomeModal: (show: boolean) => void;
+  showMeetingDialog2:boolean;
+  setShowMeetingDialog2: (show: boolean) => void;
 }
 
 const WelcomeCard: React.FC<WelcomeCardProps> = ({ 
   userName,
   onNewChat,
-  onMeetNow 
+  handleStartMeeting,
+  showWelcomeModal,
+  setShowWelcomeModal,
+  showMeetingDialog2,
+  setShowMeetingDialog2
 }) => {
   const [screenSize, setScreenSize] = useState({
     isMobile: false,
@@ -18,6 +27,14 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
     isSmallScreen: false
   });
 
+  const startmodal = () => {
+    setShowWelcomeModal(!showWelcomeModal);
+    setShowMeetingDialog2(false);
+  };
+ const closeMeetingDialog=()=>{
+    setShowWelcomeModal(false);
+    setShowMeetingDialog2(false);
+  }
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -73,7 +90,15 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
           />
         </div>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center relative"> <MeetingDialog 
+        isOpen={showWelcomeModal && !showMeetingDialog2}
+        onDismiss={closeMeetingDialog}
+        left={"50%"}
+        onStartMeeting={()=>{
+          closeMeetingDialog();
+          handleStartMeeting()}}
+        username={userName}
+      />
           <div className={`${isSmallScreen ? 'w-20 h-20' : 'w-24 h-24 sm:w-32 sm:h-32'} mb-4 sm:mb-6`}>
             <img
               src="https://statics.teams.cdn.live.net/evergreen-assets/illustrations/webp/256/meet-l-standard-256x256.webp"
@@ -86,7 +111,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
           </p>
           <DefaultButton
             text="Meet now"
-            onClick={onMeetNow}
+            onClick={startmodal}
             styles={{
               root: {
                 borderRadius: "4px",

@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Header onToggleSidebar={toggleSidebar} />
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 overflow-auto bg-white sm:rounded-3xl shadow">
+        <main className="flex-1 overflow-auto bg-white">
           {children}
         </main>
       </div>
