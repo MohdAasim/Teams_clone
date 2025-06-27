@@ -47,3 +47,66 @@ export const STATUS_OPTIONS = [
     iconName: 'presenceOffline'
   },
 ];
+
+export const dummyUsers = [
+  {
+    name: "Arslaan",
+    email: "arslaan@company.com"
+  },
+  {
+    name: "asd",
+    email: "asd@company.com"
+  },
+  {
+    name: "Aisha Patel",
+    email: "a.patel@company.com"
+  },
+  {
+    name: "David Rodriguez",
+    email: "d.rodriguez@company.com"
+  },
+  {
+    name: "Emma David",
+    email: "emma.d@company.com"
+  },
+  {
+    name: "James Lee",
+    email: "jameslee@company.com"
+  },
+  {
+    name: "Priya Sharma",
+    email: "p.sharma@company.com"
+  },
+  {
+    name: "Thomas Brown",
+    email: "t.brown@company.com"
+  },
+  {
+    name: "Olivia Garcia",
+    email: "olivia.g@company.com"
+  },
+  {
+    name: "Alex Kim",
+    email: "alex.kim@company.com"
+  },
+  {
+    name: "Sophia Martinez",
+    email: "s.martinez@company.com"
+  },
+  {
+    name: "Daniel Thompson",
+    email: "dthompson@company.com"
+  },
+  {
+    name: "Zoe Williams",
+    email: "zoe.w@company.com"
+  },
+  {
+    name: "Ryan Nguyen",
+    email: "r.nguyen@company.com"
+  },
+  {
+    name: "Isabella Clark",
+    email: "i.clark@company.com"
+  }
+]
