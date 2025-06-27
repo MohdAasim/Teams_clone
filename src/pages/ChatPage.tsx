@@ -58,8 +58,11 @@ const ChatPage = () => {
   const [showSyncBanner, setShowSyncBanner] = useState(true);
 
   // Video call states
-  const [showMeetingDialog, setShowMeetingDialog] = useState(false);
+  const [showMeetingDialog2, setShowMeetingDialog2] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const   [showWelcomeModal,
+  setShowWelcomeModal] = useState(false);
+
   
   useEffect(() => {
     const handleResize = () => {
@@ -167,13 +170,18 @@ const ChatPage = () => {
   };
 
   const handleMeetNowClick = () => {
-    setShowMeetingDialog(true);
+    setShowMeetingDialog2(true);
+    setShowWelcomeModal(!showWelcomeModal);
   };
 
   const handleStartMeeting = () => {
-    setShowMeetingDialog(false);
+    setShowMeetingDialog2(false);
     setShowVideoCall(true);
   };
+  const closeMeetingDialog=()=>{
+    setShowMeetingDialog2(false);
+    setShowWelcomeModal(false);
+  }
 
   const handleEndVideoCall = () => {
     setShowVideoCall(false);
@@ -183,6 +191,8 @@ const ChatPage = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+
 
   // Header icon styles to match Teams UI
   const iconButtonStyles = {
@@ -211,11 +221,11 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full border-l border-[#e1e1e1]">
       {showNotification && (
         <div className="bg-[#f0f6ff] px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center">
-            <div className="flex items-center justify-center rounded-full w-5 h-5 mr-2 text-2xl">
+            <div className="flex items-center justify-center rounded-full w-5 h-5 mr-2 text-2xl pl10">
               <InfoFilled />
             </div>
             <span>Stay in the know. Turn on desktop notifications.</span>
@@ -240,8 +250,7 @@ const ChatPage = () => {
             />
             <IconButton
               onClick={handleDismiss}
-              ariaLabel="Close"
-              styles={{
+              ariaLabel="Close" styles={{
                 root: {
                   color: "#616161",
                 },
@@ -253,7 +262,7 @@ const ChatPage = () => {
         </div>
       )}
 
-      <div className="flex flex-1 h-[calc(100vh-60px)] overflow-hidden">
+      <div className="flex flex-1 h-[calc(100vh-60px)] overflow-hidden bg-[#ebebeb]">
         {/* Chat sidebar */}
         {showVideoCall ? (
           <VideoCallModal
@@ -267,11 +276,20 @@ const ChatPage = () => {
               <div
                 className={`${
                   isMobile ? "w-full" : "w-[320px]"
-                } border-r border-[#e1e1e1] flex flex-col bg-white h-full`}
+                } flex flex-col bg-white h-full`}
               >
-                <div className="p-4 flex items-center justify-between border-b border-[#e1e1e1]">
-                  <h2 className="text-xl font-semibold">Chat</h2>
-                  <div className="flex space-x-1">
+                <div className="p-4 flex items-center justify-between bg-[#ebebeb] border-[#e1e1e1] relative">
+                  <h2 className="text-xl font-semibold relative">Chat</h2>
+                  <div className="flex space-x-1 relative">
+                     
+                      <MeetingDialog 
+                      top={"120%"}
+                      left={"50%"}
+                      isOpen={showWelcomeModal && showMeetingDialog2}
+                      onDismiss={closeMeetingDialog}
+                      onStartMeeting={handleStartMeeting}
+                      username={userName}
+                    />
                     <IconButton
                       ariaLabel="Filter"
                       styles={iconButtonStyles}
@@ -291,7 +309,9 @@ const ChatPage = () => {
                       onMouseOver={() => setActiveIconIndex(1)}
                       onMouseOut={() => setActiveIconIndex(null)}
                       onClick={handleMeetNowClick}
+                      className='relative'
                     >
+                     
                       {activeIconIndex === 1 ? (
                         <VideoFilled
                           style={{
@@ -326,7 +346,7 @@ const ChatPage = () => {
                 </div>
 
                 {/* Chat list */}
-                <div className="flex flex-col flex-grow overflow-y-auto">
+                <div className="flex flex-col flex-grow overflow-y-auto bg-[#ebebeb]">
                   {chats.length > 0 && (
                     <div className="p-2">
                       <div className="flex items-center px-2 py-1">
@@ -428,8 +448,8 @@ const ChatPage = () => {
                 )}
 
                 {/* Invite to Teams button */}
-                <div className="p-3 border-t border-[#e1e1e1]">
-                  <button className="bg-[#5b5fc7] text-white py-2 px-4 w-full flex items-center justify-center gap-2 hover:bg-[#4b4fa7] transition-colors rounded-md">
+                <div className="p-2 bg-[#ebebeb]">
+                  <button className="bg-[#5b5fc7] text-white py-2 font-bold px-4 w-full flex items-center justify-center gap-2 hover:bg-[#4b4fa7] transition-colors rounded-md">
                     <PersonAddRegular />
                     <span>Invite to Teams</span>
                   </button>
@@ -438,13 +458,17 @@ const ChatPage = () => {
             )}
 
             {/* Main content area */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden rounded-xl m-2 shadow-2xs">
               {!showNewChat && (!isMobile || (isMobile && !showSidebar)) && (
                 <div className="flex-1 bg-white">
                   <WelcomeCard
                     userName={userName}
                     onNewChat={handleCreateNewChat}
-                    onMeetNow={handleMeetNowClick}
+                    handleStartMeeting={handleStartMeeting}
+                    showWelcomeModal={showWelcomeModal}
+                    showMeetingDialog2={showMeetingDialog2}
+                    setShowMeetingDialog2={setShowMeetingDialog2}
+                    setShowWelcomeModal={setShowWelcomeModal}
                   />
                 </div>
               )}
@@ -539,8 +563,8 @@ const ChatPage = () => {
                   </div>
 
                   {/* Message input - Updated to match reference images */}
-                  <div className="border-t border-[#e1e1e1] p-3">
-                    <div className="flex items-end rounded-md border border-[#e1e1e1] overflow-hidden">
+                  <div className="px-12 pb-6">
+                    <div className="flex items-end rounded-md border border-b-2 border-b-[#5b5fc7] border-[#e1e1e1] overflow-hidden">
                       <TextField
                         placeholder="Type a message"
                         value={message}
@@ -548,6 +572,7 @@ const ChatPage = () => {
                         multiline
                         autoAdjustHeight
                         resizable={false}
+                        className='h-12'
                         borderless
                         styles={{
                           root: { margin: "0", width: "100%" },
@@ -639,12 +664,7 @@ const ChatPage = () => {
       </div>
 
       {/* Add the MeetingDialog and VideoCallModal components here */}
-      <MeetingDialog
-        isOpen={showMeetingDialog}
-        onDismiss={() => setShowMeetingDialog(false)}
-        onStartMeeting={handleStartMeeting}
-        username={userName}
-      />
+      
     </div>
   );
 };
