@@ -1,8 +1,8 @@
+import { useState, useRef } from 'react';
+import type React from 'react';
 import { 
   DefaultButton, 
-  IconButton,
-  TextField,
-  Icon
+  IconButton
 } from '@fluentui/react';
 import { 
   Dismiss16Regular,
@@ -13,22 +13,31 @@ import {
   FilterRegular,
   PersonAddRegular,
   ChevronDown24Regular,
-  ChevronUp24Regular,
   MoreHorizontal20Regular,
-  ChevronLeft24Regular,
   DismissRegular,
-  Send24Regular,
-  EmojiRegular,
-  AttachRegular
+  MailUnreadRegular,
+  PinRegular,
+  SpeakerMuteRegular,
+  PersonProhibitedRegular,
+  EyeOffRegular,
+  AppsRegular,
+  DeleteRegular
 } from '@fluentui/react-icons';
 import WelcomeCard from '../components/chat/WelcomeCard';
 import MeetingDialog from '../components/videoCall/MeetingDialog';
 import VideoCallModal from '../components/videoCall/VideoCallModal';
 import { userName } from '../utils/constant';
 import ChatMessages from '../components/chat/ChatMessages';
+import NewChatInterface from '../components/chat/NewChatInterface';
 import { useChatPage, type newChatType } from '../hooks/useChatPage';
 import { iconButtonStyles } from '../utils/chatStyles';
+import { useDropdownPosition } from '../hooks/useDropdownPosition';
 const ChatPage = () => {
+  // Dropdown positioning
+  const { calculatePosition } = useDropdownPosition();
+  const chatRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const [dropdownPositions, setDropdownPositions] = useState<{ [key: number]: React.CSSProperties }>({});
+
   const {
     // State
     showNotification,
@@ -78,10 +87,28 @@ const ChatPage = () => {
     handleSendMessage
   } = useChatPage();
 
+  // Custom handler for chat options that calculates dropdown position
+  const handleChatOptionsClickWithPosition = (chatId: number, e: unknown) => {
+    (e as { stopPropagation: () => void }).stopPropagation();
+    
+    // First trigger the original handler
+    handleChatOptionsClick(chatId, e);
+    
+    // Then calculate position
+    const chatElement = chatRefs.current[chatId];
+    if (chatElement) {
+      const position = calculatePosition(chatElement);
+      setDropdownPositions(prev => ({
+        ...prev,
+        [chatId]: position
+      }));
+    }
+  };
+
   return (
     <div className="flex flex-col h-full border-l border-[#e1e1e1]">
       {showNotification && (
-        <div className="bg-[#f0f6ff] px-4 py-2.5 flex items-center justify-between">
+        <div className="bg-[#f0f6ff] px-4 py-1 flex items-center justify-between">
           <div className="flex items-center">
             <div className="flex items-center justify-center rounded-full w-5 h-5 mr-2 text-2xl pl10">
               <InfoFilled />
@@ -98,7 +125,7 @@ const ChatPage = () => {
                   backgroundColor: "white",
                   borderColor: "#d1d1d1",
                   minWidth: "80px",
-                  height: "28px",
+                  height: "20px",
                   borderRadius: "4px",
                 },
                 label: {
@@ -108,7 +135,8 @@ const ChatPage = () => {
             />
             <IconButton
               onClick={handleDismiss}
-              ariaLabel="Close" styles={{
+              ariaLabel="Close"
+              styles={{
                 root: {
                   color: "#616161",
                 },
@@ -132,15 +160,14 @@ const ChatPage = () => {
           <>
             {(!isMobile || (isMobile && showSidebar)) && (
               <div
-                className={`${
+                className={`relative ${
                   isMobile ? "w-full" : "w-[320px]"
                 } flex flex-col bg-white h-full`}
               >
                 <div className="p-4 flex items-center justify-between bg-[#ebebeb] border-[#e1e1e1] relative">
                   <h2 className="text-xl font-semibold relative">Chat</h2>
                   <div className="flex space-x-1 relative">
-                     
-                      <MeetingDialog 
+                    <MeetingDialog
                       top={"120%"}
                       left={"50%"}
                       isOpen={showWelcomeModal && showMeetingDialog2}
@@ -167,9 +194,8 @@ const ChatPage = () => {
                       onMouseOver={() => setActiveIconIndex(1)}
                       onMouseOut={() => setActiveIconIndex(null)}
                       onClick={handleMeetNowClick}
-                      className='relative'
+                      className="relative"
                     >
-                     
                       {activeIconIndex === 1 ? (
                         <VideoFilled
                           style={{
@@ -191,7 +217,9 @@ const ChatPage = () => {
                       styles={iconButtonStyles}
                       onMouseOver={() => setActiveIconIndex(2)}
                       onMouseOut={() => setActiveIconIndex(null)}
-                      onClick={()=>handleCreateNewChat({name:'',email:''})}
+                      onClick={() =>
+                        handleCreateNewChat({ name: "", email: "" })
+                      }
                     >
                       <ComposeFilled
                         style={{
@@ -217,10 +245,13 @@ const ChatPage = () => {
                         </div>
                       </div>
 
-                      {chats.map((chat) => (
+                      {chats.map((chat, index) => (
                         <div
                           key={chat.id}
-                          className={`flex items-center px-3 py-3 rounded-md hover:bg-gray-100 cursor-pointer relative ${
+                          ref={(el) => {
+                            chatRefs.current[chat.id] = el;
+                          }}
+                          className={`flex items-center pl-3 py-3 rounded-md hover:bg-gray-100 cursor-pointer relative ${
                             chat.selected ? "bg-gray-100" : ""
                           }`}
                           onMouseEnter={() => handleChatHover(chat.id)}
@@ -249,24 +280,132 @@ const ChatPage = () => {
                           {hoveredChatId === chat.id && (
                             <IconButton
                               ariaLabel="More options"
-                              className="absolute right-2 top-2"
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2"
                               onClick={(e) =>
-                                handleChatOptionsClick(chat.id, e)
+                                handleChatOptionsClickWithPosition(chat.id, e)
                               }
+                              styles={{
+                                root: {
+                                  width: "24px",
+                                  height: "24px",
+                                  borderRadius: "4px",
+                                  color: "#616161",
+                                  selectors: {
+                                    ":hover": {
+                                      backgroundColor: "#f5f5f5",
+                                    },
+                                  },
+                                },
+                              }}
                             >
                               <MoreHorizontal20Regular />
                             </IconButton>
                           )}
 
                           {showChatOptions === chat.id && (
-                            <div className="absolute right-8 top-2 bg-white shadow-md rounded-md z-10">
-                              <button
-                                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-                                onClick={(e) => handleDiscardChat(chat.id, e)}
-                              >
-                                <DismissRegular className="mr-2" />
-                                <span>Discard</span>
-                              </button>
+                            <div
+                              className="absolute right-8 bg-white shadow-lg rounded-lg z-20 border border-gray-200 py-2 min-w-[160px]"
+                              style={
+                                dropdownPositions[chat.id] ||
+                                (index < chats.length / 2
+                                  ? { top: "100%", marginTop: "4px" }
+                                  : { bottom: "100%", marginBottom: "4px" })
+                              }
+                            >
+                              {/* Check if this is a new chat (no messages) or existing chat */}
+                              {chat.messages.length === 0 ? (
+                                // New chat options - only show Discard
+                                <button
+                                  className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700"
+                                  onClick={(e) => handleDiscardChat(chat.id, e)}
+                                >
+                                  <DismissRegular className="mr-3 w-4 h-4" />
+                                  <span>Discard</span>
+                                </button>
+                              ) : (
+                                // Existing chat options - show full menu
+                                <>
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("Mark as unread");
+                                    }}
+                                  >
+                                    <MailUnreadRegular className="mr-3 w-4 h-4" />
+                                    <span>Mark as unread</span>
+                                  </button>
+
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("Pin");
+                                    }}
+                                  >
+                                    <PinRegular className="mr-3 w-4 h-4" />
+                                    <span>Pin</span>
+                                  </button>
+
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("Mute");
+                                    }}
+                                  >
+                                    <SpeakerMuteRegular className="mr-3 w-4 h-4" />
+                                    <span>Mute</span>
+                                  </button>
+
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("Block");
+                                    }}
+                                  >
+                                    <PersonProhibitedRegular className="mr-3 w-4 h-4" />
+                                    <span>Block</span>
+                                  </button>
+
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("Hide");
+                                    }}
+                                  >
+                                    <EyeOffRegular className="mr-3 w-4 h-4" />
+                                    <span>Hide</span>
+                                  </button>
+
+                                  <div className="border-t border-gray-100 my-1"></div>
+
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-gray-50 w-full text-left text-sm text-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("Manage apps");
+                                    }}
+                                  >
+                                    <AppsRegular className="mr-3 w-4 h-4" />
+                                    <span>Manage apps</span>
+                                  </button>
+
+                                  <div className="border-t border-gray-100 my-1"></div>
+
+                                  <button
+                                    className="flex items-center px-3 py-2 hover:bg-red-50 w-full text-left text-sm text-red-600 cursor-pointer"
+                                    onClick={(e) =>
+                                      handleDiscardChat(chat.id, e)
+                                    }
+                                  >
+                                    <DeleteRegular className="mr-3 w-4 h-4" />
+                                    <span>Delete</span>
+                                  </button>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
@@ -284,8 +423,8 @@ const ChatPage = () => {
 
                 {/* Sync banner at bottom - only shown when there are chats */}
                 {chats.length > 0 && showSyncBanner && (
-                  <div className="p-3 border-t border-[#e1e1e1] bg-gray-50">
-                    <div className="flex items-center justify-between mb-3 text-sm">
+                  <div className="p-2 border-t border-[#e1e1e1] bg-gray-50 absolute bottom-0 left-0 right-0">
+                    <div className="flex items-center justify-between text-sm ">
                       <div>
                         Find more people by syncing from your phone or other
                         sources.
@@ -317,248 +456,79 @@ const ChatPage = () => {
 
             {/* Main content area */}
             <div className="flex-1 flex flex-col overflow-hidden rounded-xl m-2 shadow-2xs">
-              {!showNewChat&&!selectedChatId && (!isMobile || (isMobile && !showSidebar)) && (
-                <div className="flex-1 bg-white">
-                  <WelcomeCard
-                    userName={userName}
-                    onNewChat={()=>handleCreateNewChat({name:'',email:''})}
-                    handleStartMeeting={handleStartMeeting}
-                    showWelcomeModal={showWelcomeModal}
-                    showMeetingDialog2={showMeetingDialog2}
-                    setShowMeetingDialog2={setShowMeetingDialog2}
-                    setShowWelcomeModal={setShowWelcomeModal}
-                  />
-                </div>
-              )}
+              {!showNewChat &&
+                !selectedChatId &&
+                (!isMobile || (isMobile && !showSidebar)) && (
+                  <div className="flex-1 bg-white">
+                    <WelcomeCard
+                      userName={userName}
+                      onNewChat={() =>
+                        handleCreateNewChat({ name: "", email: "" })
+                      }
+                      handleStartMeeting={handleStartMeeting}
+                      showWelcomeModal={showWelcomeModal}
+                      showMeetingDialog2={showMeetingDialog2}
+                      setShowMeetingDialog2={setShowMeetingDialog2}
+                      setShowWelcomeModal={setShowWelcomeModal}
+                    />
+                  </div>
+                )}
 
-              {!showNewChat&&selectedChatId&&(chats.find(chat => chat.id === selectedChatId) as newChatType)?.messages.length > 0 && 
-              <ChatMessages 
-    messages={chats.find(chat => chat.id === selectedChatId)?.messages || []}
-    currentUser={userName}
-    chatPartner={{
-      name: chats.find(chat => chat.id === selectedChatId)?.name || "",
-      email: chats.find(chat => chat.id === selectedChatId)?.email || ""
-    }}
-    onSendMessage={handleSendMessage}
-    onBackToChats={handleBackToChats}
-  />}
+              {!showNewChat &&
+                selectedChatId &&
+                (
+                  chats.find(
+                    (chat) => chat.id === selectedChatId
+                  ) as newChatType
+                )?.messages.length > 0 && (
+                  <ChatMessages
+                    messages={
+                      chats.find((chat) => chat.id === selectedChatId)
+                        ?.messages || []
+                    }
+                    currentUser={userName}
+                    chatPartner={{
+                      name:
+                        chats.find((chat) => chat.id === selectedChatId)
+                          ?.name || "",
+                      email:
+                        chats.find((chat) => chat.id === selectedChatId)
+                          ?.email || "",
+                    }}
+                    onSendMessage={handleSendMessage}
+                    onBackToChats={handleBackToChats}
+                  />
+                )}
 
               {/* New chat view */}
-              {((showNewChat && (!isMobile || (isMobile && !showSidebar))) || (selectedChatId && (chats.find(chat => chat.id === selectedChatId) as newChatType)?.messages.length == 0))&& (
-                <div className="flex-1 flex flex-col bg-white overflow-hidden">
-                  {/* New Chat Header */}
-                  <div className="flex items-center p-3 border-b border-[#e1e1e1]">
-                    {/* Only show back button on mobile */}
-                    {isMobile && (
-                      <IconButton
-                        ariaLabel="Back"
-                        onClick={handleBackToChats}
-                        styles={{
-                          root: {
-                            color: "#616161",
-                            marginRight: "8px",
-                          },
-                        }}
-                      >
-                        <ChevronLeft24Regular />
-                      </IconButton>
-                    )}
-
-                    <div className="flex flex-col flex-1">
-                      {/* Group name field - only shown when toggle is clicked */}
-                      {showGroupNameField && (
-                        <div className="mb-2 border-b border-[#e1e1e1] pb-2">
-                          <TextField
-                            placeholder="Group name:"
-                            value={groupName}
-                            onChange={(_, newValue) =>
-                              setGroupName(newValue || "")
-                            }
-                            borderless
-                            styles={{
-                              root: { margin: "0" },
-                              fieldGroup: { background: "transparent" },
-                            }}
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center">
-                        <span className="mr-2 font-medium relative">To:
-                        </span>
-                        
-                          <div className="flex-1 relative">
-                            <TextField
-                              placeholder="Enter name, email or phone number"
-                              value={recipient}
-                              onChange={onUserSearchChange}
-                              onFocus={onUserSearchChange}
-                              onBlur={() => setTimeout(() => setUsers([]), 300)}
-                              borderless
-                              className="flex-1"
-                              styles={{
-                                root: { margin: "0", width: "100%" },
-                                fieldGroup: { background: "transparent" },
-                              }}
-                            />
-                            
-                            {users.length > 0 && (
-                              <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-md z-10 mt-1 border border-gray-200">
-                                {users.map((user, index) => (
-                                  <div 
-                                    key={index}
-                                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                    onClick={()=>onUserSelect(user)}
-                                  >
-                                    <div className="w-8 h-8 rounded-full bg-[#E9A52F] flex items-center justify-center text-white font-medium text-sm mr-3">
-                                      {user.name.split(' ').map(part => part.charAt(0)).join('').toUpperCase().substring(0, 2)}
-                                    </div>
-                                    <div>
-                                      <div className="font-medium">{user.name}</div>
-                                      <div className="text-xs text-gray-500">{user.email}</div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        <IconButton
-                          ariaLabel={
-                            showGroupNameField
-                              ? "Hide group name"
-                              : "Show group name"
-                          }
-                          onClick={toggleGroupNameField}
-                        >
-                          {showGroupNameField ? (
-                            <ChevronUp24Regular />
-                          ) : (
-                            <ChevronDown24Regular />
-                          )}
-                        </IconButton>
-                      </div>
-
-                    </div>
-                  </div>
-
-                  {/* New Chat Content */}
-                  <div className="flex-1 flex flex-col items-center justify-center p-4">
-                    <div className="w-32 h-32 mb-4">
-                      <img
-                        src="https://statics.teams.cdn.live.net/evergreen-assets/illustrations/webp/256/chat-l-standard-256x256.webp"
-                        alt="New chat bubble"
-                        className="w-full h-full"
-                      />
-                    </div>
-                    <h2 className="text-xl font-semibold mb-1">
-                      You're starting a new conversation
-                    </h2>
-                    <p className="text-gray-600 mb-4">
-                      Type your first message below.
-                    </p>
-                  </div>
-
-                  {/* Message input - Updated to match reference images */}
-                  <div className="px-12 pb-6">
-                    <div className="flex items-end rounded-md border border-b-2 border-b-[#5b5fc7] border-[#e1e1e1] overflow-hidden">
-                      <TextField
-                        placeholder="Type a message"
-                        value={message}
-                        onChange={(_, newValue) => setMessage(newValue || "")}
-                        multiline
-                        autoAdjustHeight
-                        resizable={false}
-                        className='h-12'
-                        borderless
-                        styles={{
-                          root: { margin: "0", width: "100%" },
-                          fieldGroup: {
-                            background: "transparent",
-                            padding: "8px 8px 0 8px",
-                          },
-                        }}
-                      />
-
-                      {/* Icon toolbar at bottom */}
-                      <div className="flex items-center border-none p-2 ml-auto">
-                        <div className="flex items-center mr-2">
-                          <IconButton
-                            ariaLabel="Emoji"
-                            styles={{
-                              root: {
-                                color: "#616161",
-                                height: "32px",
-                                width: "32px",
-                              },
-                            }}
-                          >
-                            <EmojiRegular />
-                          </IconButton>
-
-                          <IconButton
-                            ariaLabel="Attach file"
-                            styles={{
-                              root: {
-                                color: "#616161",
-                                height: "32px",
-                                width: "32px",
-                              },
-                            }}
-                          >
-                            <AttachRegular />
-                          </IconButton>
-
-                          <IconButton
-                            ariaLabel="Format"
-                            styles={{
-                              root: {
-                                color: "#616161",
-                                height: "32px",
-                                width: "32px",
-                              },
-                            }}
-                          >
-                            <Icon iconName="TextBox" />
-                          </IconButton>
-
-                          <IconButton
-                            ariaLabel="More options"
-                            styles={{
-                              root: {
-                                color: "#616161",
-                                height: "32px",
-                                width: "32px",
-                              },
-                            }}
-                          >
-                            <Icon iconName="More" />
-                          </IconButton>
-                        </div>
-
-                        <IconButton
-                          ariaLabel="Send"
-                          disabled={!message.trim() || !recipient}
-                          onClick={() => addMessage()}
-                          styles={{
-                            root: {
-                              color: message.trim() ? "#5b5fc7" : "#c8c8c8",
-                              height: "32px",
-                              width: "32px",
-                              marginLeft: "8px",
-                            },
-                          }}
-                        >
-                          <Send24Regular />
-                        </IconButton>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {((showNewChat && (!isMobile || (isMobile && !showSidebar))) ||
+                (selectedChatId &&
+                  (
+                    chats.find(
+                      (chat) => chat.id === selectedChatId
+                    ) as newChatType
+                  )?.messages.length == 0)) && (
+                <NewChatInterface
+                  isMobile={isMobile}
+                  showGroupNameField={showGroupNameField}
+                  groupName={groupName}
+                  setGroupName={setGroupName}
+                  recipient={recipient}
+                  message={message}
+                  setMessage={setMessage}
+                  users={users}
+                  onBackToChats={handleBackToChats}
+                  onToggleGroupNameField={toggleGroupNameField}
+                  onUserSearchChange={onUserSearchChange}
+                  onUserSelect={onUserSelect}
+                  onAddMessage={addMessage}
+                  setUsers={setUsers}
+                />
               )}
             </div>
           </>
         )}
-      </div>      
+      </div>
     </div>
   );
 };
