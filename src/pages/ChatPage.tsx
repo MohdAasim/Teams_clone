@@ -1,4 +1,3 @@
-import { useEffect, useState, type FormEvent } from 'react';
 import { 
   DefaultButton, 
   IconButton,
@@ -23,303 +22,61 @@ import {
   AttachRegular
 } from '@fluentui/react-icons';
 import WelcomeCard from '../components/chat/WelcomeCard';
-import { 
-  shouldShowNotification, 
-  enableNotifications, 
-  disableNotifications 
-} from '../utils/chatLocalStorage';
 import MeetingDialog from '../components/videoCall/MeetingDialog';
 import VideoCallModal from '../components/videoCall/VideoCallModal';
-import { dummyUsers, userName } from '../utils/constant';
+import { userName } from '../utils/constant';
 import ChatMessages from '../components/chat/ChatMessages';
-interface newChatType {
-  id: number;
-  name: string;
-  email: string;
-  image: null;
-  recent: boolean;
-  selected: boolean;
-  messages:messageType[]
-}
-export interface messageType{
-  message: string;
-  sender: string;
-  timestamp: string;
-  reactions:string[];
-}
+import { useChatPage, type newChatType } from '../hooks/useChatPage';
+import { iconButtonStyles } from '../utils/chatStyles';
 const ChatPage = () => {
-  const [showNotification, setShowNotification] = useState(shouldShowNotification);
-  const [activeIconIndex, setActiveIconIndex] = useState<number | null>(null);
+  const {
+    // State
+    showNotification,
+    activeIconIndex,
+    setActiveIconIndex,
+    isMobile,
+    showSidebar,
+    chats,
+    showNewChat,
+    showGroupNameField,
+    groupName,
+    setGroupName,
+    recipient,
+    message,
+    setMessage,
+    hoveredChatId,
+    showChatOptions,
+    selectedChatId,
+    showSyncBanner,
+    showMeetingDialog2,
+    showVideoCall,
+    showWelcomeModal,
+    setShowWelcomeModal,
+    setShowMeetingDialog2,
+    users,
+    setUsers,
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [chats, setChats] = useState<newChatType[]>([]);
-  
-  // New chat states
-  const [showNewChat, setShowNewChat] = useState(false);
-  const [showGroupNameField, setShowGroupNameField] = useState(false);
-  const [groupName, setGroupName] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [message, setMessage] = useState('');
-  const [hoveredChatId, setHoveredChatId] = useState<number | null>(null);
-  const [showChatOptions, setShowChatOptions] = useState<number | null>(null);
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
-  const [showSyncBanner, setShowSyncBanner] = useState(true);
-
-  // Video call states
-  const [showMeetingDialog2, setShowMeetingDialog2] = useState(false);
-  const [showVideoCall, setShowVideoCall] = useState(false);
-  const   [showWelcomeModal,
-  setShowWelcomeModal] = useState(false);
-  const [users, setUsers] = useState<typeof dummyUsers>([]);
-
-  
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) {
-        setShowSidebar(true);
-      }
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const handleTurnOn = () => {
-    enableNotifications();
-    setShowNotification(false);
-  };
-
-  const handleDismiss = () => {
-    disableNotifications();
-    setShowNotification(false); //hello
-  };
-
-  const handleCreateNewChat = (user:{name:string;email:string}|undefined) => {
-    // Add a new chat to the list
-    const existingChat = chats.find(chat => chat.email === user?.email);
-    if (existingChat) {
-      // If chat with this email already exists, do not create a new one
-      return;
-    }
-    const newChatId = Date.now();
-    const newChat = {
-      id: newChatId,
-      name: user?.name||"New chat",
-      email: user?.email||"",
-      image: null,
-      recent: true,
-      selected: true,
-      messages: []
-    };
-    const newChats = chats.filter(chat=>chat.name!=="New chat")
-
-    setChats([
-     newChat,
-      ...newChats
-    ]);
-    setSelectedChatId(newChatId);
-    setShowNewChat(true);
-    
-    if (isMobile) {
-      setShowSidebar(false);
-    }
-  };
-
-  const handleBackToChats = () => {
-    if (isMobile) {
-      setShowSidebar(true);
-    } else {
-      setShowNewChat(false);
-    }
-  };
-  const handleChatItemClick = (id: number) => {
-    // Find the selected chat first to get its name
-    const selectedChat = chats.find((chat) => chat.id === id);
-
-    // Update the recipient state with the selected chat's name
-    if (selectedChat) {
-      setRecipient(selectedChat.name);
-    }
-
-    setChats((oldchats) =>
-      oldchats.map((chat) => ({
-        ...chat,
-        selected: chat.id === id,
-      }))
-    );
-    setChats((oldchats) =>
-      oldchats.filter((chat) => chat.name !== "New chat" || chat.selected)
-    );
-
-    setSelectedChatId(id);
-    setShowNewChat(false);
-
-    if (isMobile) {
-      setShowSidebar(false);
-    }
-  };
-
-  const toggleGroupNameField = () => {
-    setShowGroupNameField(!showGroupNameField);
-  };
-
-  const handleChatHover = (id: number) => {
-    setHoveredChatId(id);
-  };
-
-  const handleChatLeave = () => {
-    setHoveredChatId(null);
-  };
-
-  const handleChatOptionsClick = (id: number, e: unknown) => {
-    // Cast to any event-like object with stopPropagation()
-    (e as { stopPropagation: () => void }).stopPropagation();
-    setShowChatOptions(id);
-  };
-
-  const handleDiscardChat = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowChatOptions(null);
-    setChats(chats.filter(chat => chat.id !== id));
-    setShowNewChat(false);
-    setRecipient('');
-    
-    // If this was the selected chat, reset selectedChatId
-    if (selectedChatId === id) {
-      setSelectedChatId(null);
-    }
-  };
-
-  const handleClickOutside = () => {
-    setShowChatOptions(null);
-  };
-
-  const handleCloseSyncBanner = () => {
-    setShowSyncBanner(false);
-  };
-
-  const handleMeetNowClick = () => {
-    setShowMeetingDialog2(true);
-    setShowWelcomeModal(!showWelcomeModal);
-  };
-
-  const handleStartMeeting = () => {
-    setShowMeetingDialog2(false);
-    setShowVideoCall(true);
-  };
-  const closeMeetingDialog=()=>{
-    setShowMeetingDialog2(false);
-    setShowWelcomeModal(false);
-  }
-
-  const handleEndVideoCall = () => {
-    setShowVideoCall(false);
-  };
-
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
-  function onUserSearchChange(e: FormEvent<HTMLInputElement | HTMLTextAreaElement>){
-    const newValue = e.currentTarget.value;
-    setRecipient(newValue);
-    console.log("Search input changed:", newValue);
-    
-    // Here you can implement search logic to filter users based on input
-      const filteredUser =newValue.trim().length<3?[]: dummyUsers.filter(user=>user.email.toLowerCase().includes(newValue.toLowerCase()));
-  console.log(filteredUser);
-  setUsers(filteredUser)
-
-  }
-
-  const onUserSelect = (user:{name:string;email:string}) => {
-    setRecipient(user.name);
-    console.log("User selected:", user);
-    
-    setUsers([]);
-    handleCreateNewChat(user);
-
-  };
-
-  const addMessage = () => {
-    const newMessage: messageType = {
-      message: message,
-      sender: userName,
-      timestamp: new Date().toISOString(),
-      reactions: []
-    };
-    console.log("-----------",selectedChatId);
-    setChats(oldChats =>
-      oldChats.map(chat => {
-        if (chat.id === selectedChatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, newMessage]
-          };
-        }
-        return chat;
-      })
-    );
-    
-    
-    setShowNewChat(false);
-    setMessage('');
-    setRecipient('');
-  }
-
-  // Header icon styles to match Teams UI
-  const iconButtonStyles = {
-    root: {
-      width: '32px',
-      height: '32px',
-      color: '#616161',
-      backgroundColor: 'transparent',
-      border: '1px solid #e1e1e1',
-      borderRadius: '4px',
-      padding: '0',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: '0 4px',
-      selectors: {
-        ':hover': {
-          backgroundColor: '#f5f5f5'
-        }
-      }
-    },
-    icon: {
-      fontSize: '20px',
-      transition: 'color 0.2s ease'
-    }
-  };
-
-  const handleSendMessage = (messageText: string) => {
-    if (!messageText.trim() || !selectedChatId) return;
-    
-    const newMessage: messageType = {
-      message: messageText,
-      sender: userName,
-      timestamp: new Date().toISOString(),
-      reactions: []
-    };
-    
-    setChats(oldChats =>
-      oldChats.map(chat => {
-        if (chat.id === selectedChatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, newMessage]
-          };
-        }
-        return chat;
-      })
-    );
-  };
+    // Handlers
+    handleTurnOn,
+    handleDismiss,
+    handleCreateNewChat,
+    handleBackToChats,
+    handleChatItemClick,
+    toggleGroupNameField,
+    handleChatHover,
+    handleChatLeave,
+    handleChatOptionsClick,
+    handleDiscardChat,
+    handleCloseSyncBanner,
+    handleMeetNowClick,
+    handleStartMeeting,
+    closeMeetingDialog,
+    handleEndVideoCall,
+    onUserSearchChange,
+    onUserSelect,
+    addMessage,
+    handleSendMessage
+  } = useChatPage();
 
   return (
     <div className="flex flex-col h-full border-l border-[#e1e1e1]">
@@ -801,10 +558,7 @@ const ChatPage = () => {
             </div>
           </>
         )}
-      </div>
-
-      {/* Add the MeetingDialog and VideoCallModal components here */}
-      
+      </div>      
     </div>
   );
 };
