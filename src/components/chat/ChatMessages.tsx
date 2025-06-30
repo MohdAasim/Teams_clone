@@ -8,11 +8,15 @@ import {
   PersonAddRegular,
   MoreHorizontalRegular,
   GifRegular,
-  StickerRegular
+  StickerRegular,
+  ChevronDown12Regular,
+  Checkmark12Regular,
+  ChevronLeft24Regular
 } from '@fluentui/react-icons';
-import type { messageType } from "../../hooks/useChatPage";
+import { type messageType } from "../../hooks/useChatPage";
 import FilesTab from "./FilesTab";
 import PhotosTab from "./PhotosTab";
+import { IconButton } from "@fluentui/react";
 
 interface ChatMessagesProps {
   messages: messageType[];
@@ -22,9 +26,10 @@ interface ChatMessagesProps {
     email: string;
   };
   onSendMessage: (message: string) => void;
+  onBackToChats: () => void;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chatPartner, onSendMessage }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chatPartner, onSendMessage,onBackToChats }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -32,6 +37,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chat
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'files' | 'photos'>('chat');
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showtabMenu, setShowTabMenu] = useState(false);
   
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -130,65 +136,82 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chat
   return (
     <div className="flex flex-col h-full bg-white rounded-md overflow-hidden">
       {/* Chat header with recipient name and action buttons */}
-      <div className="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center">
+      <div className="bg-white px-4 h-16 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center h-full space-x-6">
+          <IconButton
+                                  ariaLabel="Back"
+                                  onClick={onBackToChats}
+                                  styles={{
+                                    root: {
+                                      color: "#616161",
+                                      marginRight: "8px",
+                                    },
+                                  }}
+                                >
+                                  <ChevronLeft24Regular />
+                                </IconButton>
           <div className="w-10 h-10 rounded-full bg-[#7b83eb] flex items-center justify-center text-white mr-3">
             {getUserInitials(chatPartner.name)}
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-gray-900">{chatPartner.name}</span>
-              <div className="flex space-x-1">
+          <div className="flex flex-col ">
+              <h3 className="font-bold capitalize md:text-xl text-gray-900">{chatPartner.name}</h3>
+              <button className="inline-block lg:hidden relative w-full" onClick={()=>setShowTabMenu(!showtabMenu)}>{activeTab} <ChevronDown12Regular/>
+             {showtabMenu&& <article className="absolute w-32 flex-col flex bg-white shadow-xl rounded-md border-[.25px] border-gray-300 text-gray-600">
+                <div className="fixed top-0 left-0 right-0 bottom-0" onClick={()=>setShowTabMenu(false)}></div>
+                
+                <button className="text-left space-x-2 px-2 py-2 border-b border-gray-300 pb-3 items-center" onClick={() => {setActiveTab('chat');setShowTabMenu(false)}}><Checkmark12Regular className={`h-5 w-5 ${activeTab !== 'chat'&&"text-white"}`}/><span>Chat</span></button>
+                <button className="text-left space-x-2 p-2 items-center" onClick={() => {setActiveTab('files');setShowTabMenu(false)}}><Checkmark12Regular className={`h-5 w-5 ${activeTab !== 'files'&&"text-white"}`}/><span>Files</span></button>
+              <button className={"text-left space-x-2 p-2 items-center"} onClick={() => {setActiveTab('photos');setShowTabMenu(false)}}><Checkmark12Regular className={`h-5 w-5 ${activeTab !== 'photos'&&"text-white"}`}/><span>Photos</span></button>
+                </article>}</button>
+          </div>
+          <div className="hidden space-x-4 lg:flex h-full">
                 <button
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                  className={`px-0 py-1  font-semibold border-b-4 rounded-xs transition-colors cursor-pointer ${
                     activeTab === 'chat'
-                      ? 'bg-[#6264A7] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'border-primary text-black'
+                      : 'text-gray-600 hover:border-gray-300 border-transparent'
                   }`}
                   onClick={() => setActiveTab('chat')}
                 >
                   Chat
                 </button>
                 <button
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                   className={`px-0 py-1 font-semibold border-b-4 rounded-xs transition-colors cursor-pointer ${
                     activeTab === 'files'
-                      ? 'bg-[#6264A7] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'border-primary text-black'
+                      : 'text-gray-600 hover:border-gray-300 border-transparent'
                   }`}
                   onClick={() => setActiveTab('files')}
                 >
                   Files
                 </button>
                 <button
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                   className={`px-0 py-1  font-semibold border-b-4 rounded-xs transition-colors cursor-pointer ${
                     activeTab === 'photos'
-                      ? 'bg-[#6264A7] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'border-primary text-black'
+                      : 'text-gray-600 hover:border-gray-300 border-transparent'
                   }`}
                   onClick={() => setActiveTab('photos')}
                 >
                   Photos
                 </button>
               </div>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Available</div>
-          </div>
         </div>
         
         {/* Action buttons */}
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors">
+          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
             <CallRegular className="w-5 h-5 text-gray-600" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors">
+          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
             <VideoRegular className="w-5 h-5 text-gray-600" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors">
+          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
             <PersonAddRegular className="w-5 h-5 text-gray-600" />
           </button>
           <div className="relative">
             <button 
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowMoreMenu(!showMoreMenu);
@@ -354,7 +377,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chat
               <div className="flex items-start space-x-3">
                 {/* Message input container */}
                 <div className="flex-1 relative">
-                  <div className="bg-gray-50 rounded-lg border border-gray-300 focus-within:border-[#6264A7] focus-within:ring-1 focus-within:ring-[#6264A7]">
+                  <form onSubmit={(e)=>{e.preventDefault();handleSendMessage()}} className="bg-gray-50 rounded-lg border border-gray-300 focus-within:border-[#6264A7] focus-within:ring-1 focus-within:ring-[#6264A7]">
                     <textarea
                       className="w-full bg-transparent p-3 pr-12 resize-none focus:outline-none placeholder-gray-500 min-h-[48px] max-h-32"
                       placeholder="Type a message"
@@ -369,7 +392,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chat
                     <div className="flex items-center justify-between px-3 pb-2">
                       <div className="flex items-center space-x-2">
                         <button
-                          className="p-1 hover:bg-gray-200 rounded transition-colors relative"
+                          className="p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer relative"
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowEmoji(!showEmoji);
@@ -377,30 +400,31 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUser, chat
                         >
                           <EmojiRegular className="w-4 h-4 text-gray-600" />
                         </button>
-                        <button className="p-1 hover:bg-gray-200 rounded transition-colors">
+                        <button className="p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer">
                           <GifRegular className="w-4 h-4 text-gray-600" />
                         </button>
-                        <button className="p-1 hover:bg-gray-200 rounded transition-colors">
+                        <button className="p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer">
                           <StickerRegular className="w-4 h-4 text-gray-600" />
                         </button>
-                        <button className="p-1 hover:bg-gray-200 rounded transition-colors">
+                        <button className="p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer">
                           <AttachRegular className="w-4 h-4 text-gray-600" />
                         </button>
                       </div>
                       
                       <button
-                        className={`p-1.5 rounded transition-colors ${
+                        className={`p-1.5 rounded transition-colors  cursor-pointer ${
                           newMessage.trim() 
                             ? "bg-[#6264A7] text-white hover:bg-[#5a5db8]" 
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
                         disabled={!newMessage.trim()}
-                        onClick={handleSendMessage}
+                        // onClick={handleSendMessage}
+                        type="submit"
                       >
                         <SendRegular className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
+                  </form>
 
                   {/* Emoji picker */}
                   {showEmoji && (

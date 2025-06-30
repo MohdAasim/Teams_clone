@@ -340,7 +340,7 @@ const ChatPage = () => {
       email: chats.find(chat => chat.id === selectedChatId)?.email || ""
     }}
     onSendMessage={handleSendMessage}
-
+    onBackToChats={handleBackToChats}
   />}
 
               {/* New chat view */}
