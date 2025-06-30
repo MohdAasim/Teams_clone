@@ -121,6 +121,9 @@ export const useChatPage = () => {
   const handleBackToChats = () => {
     if (isMobile) {
       setShowSidebar(true);
+      setSelectedChatId(null)
+      console.log("in here ");
+      
     } else {
       setShowNewChat(false);
     }
@@ -273,6 +276,10 @@ export const useChatPage = () => {
       })
     );
   };
+  const closeChat=()=>{
+    console.log("Closing chat");
+    setSelectedChatId(null)
+  }
 
   return {
     // State
@@ -300,6 +307,7 @@ export const useChatPage = () => {
     setShowMeetingDialog2,
     users,
     setUsers,
+    closeChat,
 
     // Handlers
     handleTurnOn,
