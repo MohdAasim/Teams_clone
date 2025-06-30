@@ -98,12 +98,9 @@ const ChatPage = () => {
     setShowNotification(false); //hello
   };
 
-  // Function to create a new chat
-  //----------------------------------------------------
   const handleCreateNewChat = (user:{name:string;email:string}|undefined) => {
     // Add a new chat to the list
     const existingChat = chats.find(chat => chat.email === user?.email);
-    console.log(existingChat,"=====");
     if (existingChat) {
       // If chat with this email already exists, do not create a new one
       return;
@@ -140,16 +137,27 @@ const ChatPage = () => {
     }
   };
   const handleChatItemClick = (id: number) => {
-    
-    setChats(oldchats=>oldchats.map(chat => ({
-      ...chat,
-      selected: chat.id === id
-    })));
-    setChats(oldchats=>oldchats.filter(chat => chat.name !== 'New chat'||chat.selected));
-    
+    // Find the selected chat first to get its name
+    const selectedChat = chats.find((chat) => chat.id === id);
+
+    // Update the recipient state with the selected chat's name
+    if (selectedChat) {
+      setRecipient(selectedChat.name);
+    }
+
+    setChats((oldchats) =>
+      oldchats.map((chat) => ({
+        ...chat,
+        selected: chat.id === id,
+      }))
+    );
+    setChats((oldchats) =>
+      oldchats.filter((chat) => chat.name !== "New chat" || chat.selected)
+    );
+
     setSelectedChatId(id);
     setShowNewChat(false);
-    
+
     if (isMobile) {
       setShowSidebar(false);
     }
@@ -178,6 +186,7 @@ const ChatPage = () => {
     setShowChatOptions(null);
     setChats(chats.filter(chat => chat.id !== id));
     setShowNewChat(false);
+    setRecipient('');
     
     // If this was the selected chat, reset selectedChatId
     if (selectedChatId === id) {
@@ -228,8 +237,6 @@ const ChatPage = () => {
 
   }
 
-  // Function to handle user selection from search results
-  //----------------------------------------------------
   const onUserSelect = (user:{name:string;email:string}) => {
     setRecipient(user.name);
     console.log("User selected:", user);
@@ -289,6 +296,29 @@ const ChatPage = () => {
       fontSize: '20px',
       transition: 'color 0.2s ease'
     }
+  };
+
+  const handleSendMessage = (messageText: string) => {
+    if (!messageText.trim() || !selectedChatId) return;
+    
+    const newMessage: messageType = {
+      message: messageText,
+      sender: userName,
+      timestamp: new Date().toISOString(),
+      reactions: []
+    };
+    
+    setChats(oldChats =>
+      oldChats.map(chat => {
+        if (chat.id === selectedChatId) {
+          return {
+            ...chat,
+            messages: [...chat.messages, newMessage]
+          };
+        }
+        return chat;
+      })
+    );
   };
 
   return (
@@ -552,10 +582,12 @@ const ChatPage = () => {
       name: chats.find(chat => chat.id === selectedChatId)?.name || "",
       email: chats.find(chat => chat.id === selectedChatId)?.email || ""
     }}
+    onSendMessage={handleSendMessage}
+
   />}
 
               {/* New chat view */}
-              {showNewChat && (!isMobile || (isMobile && !showSidebar)) && (
+              {((showNewChat && (!isMobile || (isMobile && !showSidebar))) || (selectedChatId && (chats.find(chat => chat.id === selectedChatId) as newChatType)?.messages.length == 0))&& (
                 <div className="flex-1 flex flex-col bg-white overflow-hidden">
                   {/* New Chat Header */}
                   <div className="flex items-center p-3 border-b border-[#e1e1e1]">
@@ -604,7 +636,7 @@ const ChatPage = () => {
                               value={recipient}
                               onChange={onUserSearchChange}
                               onFocus={onUserSearchChange}
-                              onBlur={() => setTimeout(() => setUsers([]), 150)}
+                              onBlur={() => setTimeout(() => setUsers([]), 300)}
                               borderless
                               className="flex-1"
                               styles={{
