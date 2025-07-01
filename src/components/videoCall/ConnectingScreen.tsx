@@ -21,7 +21,7 @@ const ConnectingScreen: React.FC<ConnectingScreenProps> = ({ username }) => {
           {getInitials(username)}
         </div>
       </div>
-      <h1 className="text-2xl font-semibold mb-1 text-white">Connecting...</h1>
+      <h1 className="text-2xl font-semibold mb-1">Connecting...</h1>
     </div>
   );
 };

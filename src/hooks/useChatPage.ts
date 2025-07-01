@@ -121,9 +121,7 @@ export const useChatPage = () => {
   const handleBackToChats = () => {
     if (isMobile) {
       setShowSidebar(true);
-      setSelectedChatId(null)
-      console.log("in here ");
-      
+      setSelectedChatId(null)      
     } else {
       setShowNewChat(false);
     }
@@ -211,18 +209,15 @@ export const useChatPage = () => {
   const onUserSearchChange = (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.currentTarget.value;
     setRecipient(newValue);
-    console.log("Search input changed:", newValue);
     
     const filteredUser = newValue.trim().length < 3 ? [] : dummyUsers.filter(user => 
       user.email.toLowerCase().includes(newValue.toLowerCase())
     );
-    console.log(filteredUser);
     setUsers(filteredUser);
   };
 
   const onUserSelect = (user: { name: string; email: string }) => {
     setRecipient(user.name);
-    console.log("User selected:", user);
     
     setUsers([]);
     handleCreateNewChat(user);
@@ -236,7 +231,6 @@ export const useChatPage = () => {
       timestamp: new Date().toISOString(),
       reactions: []
     };
-    console.log("-----------", selectedChatId);
     setChats(oldChats =>
       oldChats.map(chat => {
         if (chat.id === selectedChatId) {
@@ -277,7 +271,6 @@ export const useChatPage = () => {
     );
   };
   const closeChat=()=>{
-    console.log("Closing chat");
     setSelectedChatId(null)
   }
 
