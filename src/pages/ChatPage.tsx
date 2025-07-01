@@ -481,24 +481,26 @@ const ChatPage = () => {
                     (chat) => chat.id === selectedChatId
                   ) as newChatType
                 )?.messages.length > 0 && (
-                  <ChatMessages
-                    messages={
+                <ChatMessages
+                  messages={
+                    chats.find((chat) => chat.id === selectedChatId)
+                      ?.messages || []
+                  }
+                  currentUser={userName}
+                  chatPartner={{
+                    name:
                       chats.find((chat) => chat.id === selectedChatId)
-                        ?.messages || []
-                    }
-                    currentUser={userName}
-                    chatPartner={{
-                      name:
-                        chats.find((chat) => chat.id === selectedChatId)
-                          ?.name || "",
-                      email:
-                        chats.find((chat) => chat.id === selectedChatId)
-                          ?.email || "",
-                    }}
-                    onSendMessage={handleSendMessage}
-                    onBackToChats={handleBackToChats}
-                  />
-                )}
+                        ?.name || "",
+                    email:
+                      chats.find((chat) => chat.id === selectedChatId)
+                        ?.email || "",
+                  }}
+                  onSendMessage={handleSendMessage}
+                  onBackToChats={handleBackToChats}
+                  onStartMeeting={handleStartMeeting}
+                  onDeleteConversation={(e) => handleDiscardChat(selectedChatId!, e)}
+                />
+              )}
 
               {/* New chat view */}
               {((showNewChat && (!isMobile || (isMobile && !showSidebar))) ||

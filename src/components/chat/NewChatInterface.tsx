@@ -86,7 +86,7 @@ const NewChatInterface: React.FC<NewChatInterfaceProps> = ({
 
           <div className="flex items-center">
             <span className="mr-2 font-medium relative">To:</span>
-            
+
             <div className="flex-1 relative">
               <TextField
                 placeholder="Enter name, email or phone number"
@@ -101,33 +101,38 @@ const NewChatInterface: React.FC<NewChatInterfaceProps> = ({
                   fieldGroup: { background: "transparent" },
                 }}
               />
-              
+
               {users.length > 0 && (
                 <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-md z-10 mt-1 border border-gray-200">
                   {users.map((user, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                       onClick={() => onUserSelect(user)}
                     >
                       <div className="w-8 h-8 rounded-full bg-[#E9A52F] flex items-center justify-center text-white font-medium text-sm mr-3">
-                        {user.name.split(' ').map(part => part.charAt(0)).join('').toUpperCase().substring(0, 2)}
+                        {user.name
+                          .split(" ")
+                          .map((part) => part.charAt(0))
+                          .join("")
+                          .toUpperCase()
+                          .substring(0, 2)}
                       </div>
                       <div>
                         <div className="font-medium">{user.name}</div>
-                        <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="text-xs text-gray-500">
+                          {user.email}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            
+
             <IconButton
               ariaLabel={
-                showGroupNameField
-                  ? "Hide group name"
-                  : "Show group name"
+                showGroupNameField ? "Hide group name" : "Show group name"
               }
               onClick={onToggleGroupNameField}
             >
@@ -153,13 +158,11 @@ const NewChatInterface: React.FC<NewChatInterfaceProps> = ({
         <h2 className="text-xl font-semibold mb-1">
           You're starting a new conversation
         </h2>
-        <p className="text-gray-600 mb-4">
-          Type your first message below.
-        </p>
+        <p className="text-gray-600 mb-4">Type your first message below.</p>
       </div>
 
       {/* Message input - Updated to match reference images */}
-      <div className="px-12 pb-6">
+      <div className="px-4 lg:px-12 pb-6">
         <div className="flex items-end rounded-md border border-b-2 border-b-[#5b5fc7] border-[#e1e1e1] overflow-hidden">
           <TextField
             placeholder="Type a message"
@@ -168,7 +171,7 @@ const NewChatInterface: React.FC<NewChatInterfaceProps> = ({
             multiline
             autoAdjustHeight
             resizable={false}
-            className='h-12'
+            className="h-12"
             borderless
             styles={{
               root: { margin: "0", width: "100%" },
@@ -181,58 +184,13 @@ const NewChatInterface: React.FC<NewChatInterfaceProps> = ({
 
           {/* Icon toolbar at bottom */}
           <div className="flex items-center border-none p-2 ml-auto">
-            <div className="flex items-center mr-2">
-              <IconButton
-                ariaLabel="Emoji"
-                styles={{
-                  root: {
-                    color: "#616161",
-                    height: "32px",
-                    width: "32px",
-                  },
-                }}
-              >
-                <EmojiRegular />
-              </IconButton>
+            <div className="flex items-center">
+              <EmojiRegular className="cursor-pointer w-8 h-5" />
+              <AttachRegular className="cursor-pointer w-8 h-5" />
 
-              <IconButton
-                ariaLabel="Attach file"
-                styles={{
-                  root: {
-                    color: "#616161",
-                    height: "32px",
-                    width: "32px",
-                  },
-                }}
-              >
-                <AttachRegular />
-              </IconButton>
+              <Icon iconName="TextBox" className="cursor-pointer w-8 h-5" />
 
-              <IconButton
-                ariaLabel="Format"
-                styles={{
-                  root: {
-                    color: "#616161",
-                    height: "32px",
-                    width: "32px",
-                  },
-                }}
-              >
-                <Icon iconName="TextBox" />
-              </IconButton>
-
-              <IconButton
-                ariaLabel="More options"
-                styles={{
-                  root: {
-                    color: "#616161",
-                    height: "32px",
-                    width: "32px",
-                  },
-                }}
-              >
-                <Icon iconName="More" />
-              </IconButton>
+              <Icon iconName="More" className="cursor-pointer w-8 h-5" />
             </div>
 
             <IconButton
