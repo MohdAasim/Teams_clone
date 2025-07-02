@@ -17,6 +17,7 @@ import { type messageType } from "../../hooks/useChatPage";
 import FilesTab from "./FilesTab";
 import PhotosTab from "./PhotosTab";
 import { IconButton } from "@fluentui/react";
+import { getUserInitials } from "../../utils/common";
 
 interface ChatMessagesProps {
   messages: messageType[];
@@ -90,15 +91,15 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 
   const messageGroups = groupMessagesByDate();
 
-  // Get user initials for avatar
-  const getUserInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part.charAt(0))
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
+  // // Get user initials for avatar
+  // const getUserInitials = (name: string) => {
+  //   return name
+  //     .split(" ")
+  //     .map((part) => part.charAt(0))
+  //     .join("")
+  //     .toUpperCase()
+  //     .substring(0, 2);
+  // };
 
   // Format time to display as "11:59 AM" format
   const formatTime = (timestamp: string) => {
@@ -284,7 +285,10 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 
         {/* Action buttons */}
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
+          <button
+            className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+            onClick={onStartMeeting}
+          >
             <CallRegular className="w-5 h-5 text-gray-600" />
           </button>
           <button
@@ -322,7 +326,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                 <button className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm cursor-pointer">
                   View profile
                 </button>
-                <button 
+                <button
                   className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm cursor-pointer text-red-600"
                   onClick={onDeleteConversation}
                 >

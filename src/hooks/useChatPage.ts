@@ -129,9 +129,10 @@ export const useChatPage = () => {
 
   const handleChatItemClick = (id: number) => {
     const selectedChat = chats.find((chat) => chat.id === id);
-
-    if (selectedChat) {
-      setRecipient(selectedChat.name);
+    setRecipient("");
+    
+    if (selectedChat && selectedChat.name !== "New chat") {
+     setRecipient(selectedChat.name);
     }
 
     setChats((oldchats) =>
@@ -270,6 +271,7 @@ export const useChatPage = () => {
       })
     );
   };
+  
   const closeChat=()=>{
     setSelectedChatId(null)
   }
